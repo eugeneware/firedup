@@ -214,7 +214,8 @@ describe('firedup', function () {
           { path: 'users/eugene/todos/1', expected: 'b' },
           { path: 'users/eugene/number', expected: 42 },
           { path: 'users/eugene/name', expected: 'Eugene' },
-          { path: 'users/eugene/key', expected: { public: 'anything', private: 'you can\'t touch this' } },
+          { path: 'users/eugene/key', expected: {
+            public: 'anything', private: 'you can\'t touch this' } },
           { path: 'users/eugene/key/public', expected: 'anything' },
         ];
 
