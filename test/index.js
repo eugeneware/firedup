@@ -91,8 +91,34 @@ describe('firedup', function () {
   }
 
   function urlGet(db, url, cb) {
+    function noop() {}
     var parts = url.split('/');
-    propGet(db, parts, [], cb);
+    propGet(db, parts, [], function (err, data) {
+      if (err && err.name === 'NotFoundError') {
+        parts = url.split('/');
+        var obj = {};
+        var count = 0;
+        db.createReadStream({
+          start: parts.concat(null),
+          end: parts.concat(undefined)
+        })
+          .on('data', function (data) {
+            if (data.key.length === parts.length + 1) {
+              count++;
+              propGet(db, data.key, [], function (err, result) {
+                obj[data.key[data.key.length - 1]] = result;
+                if (err) return cb(err);
+                --count || cb(null, obj);
+              });
+            }
+          })
+          .on('end', function () {
+            if (count === 0) cb(err, data);
+          });
+      } else {
+        cb(err, data);
+      }
+    });
   }
 
   function propGet(db, parts, props, cb) {
@@ -177,6 +203,7 @@ describe('firedup', function () {
         if (err) return done(err);
         var tests = [
           { path: 'users/eugene/todos', expected: ['a', 'b', 'c'] },
+          { path: 'users/eugene/todos/1', expected: 'b' },
           { path: 'users/eugene/number', expected: 42 },
           { path: 'users/eugene/name', expected: 'Eugene' },
         ];
