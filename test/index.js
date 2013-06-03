@@ -59,15 +59,30 @@ describe('firedup', function () {
   }
 
   function propPut(db, parts, data, cb) {
+    noop = function noop () {};
     var _data = JSON.parse(JSON.stringify(data));
-    Object.keys(data).forEach(function (key) {
-      var value = data[key];
-      if (typeof value === 'object') {
-        delete _data[key];
-        propPut(db, parts.concat(key), value);
+    if (typeof data === 'object' && data instanceof Array) {
+      var count = 0;
+      Object.keys(data).forEach(function (key) {
+        var value = data[key];
+        count++;
+        propPut(db, parts.concat(key), value, function (err) {
+          if (err) return cb(err);
+          --count || cb();
+        });
+      });
+    } else {
+      if (typeof data === 'object') {
+        Object.keys(data).forEach(function (key) {
+          var value = data[key];
+          if (typeof value === 'object') {
+            delete _data[key];
+            propPut(db, parts.concat(key), value, noop);
+          }
+        });
       }
-    });
-    db.put(parts, _data, cb);
+      db.put(parts, _data, cb);
+    }
   }
 
   function urlPush(db, url, data, cb) {
