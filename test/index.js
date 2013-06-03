@@ -87,7 +87,10 @@ describe('firedup', function () {
 
   function urlPush(db, url, data, cb) {
     var parts = url.split('/');
-    db.push(parts, data, cb);
+    var hr = process.hrtime();
+    var key = hr[0]*1e9 + hr[1];
+    db.put(parts.concat(key), data, cb);
+    return key;
   }
 
   function urlGet(db, url, cb) {
@@ -124,6 +127,7 @@ describe('firedup', function () {
   function propGet(db, parts, props, cb) {
     db.get(parts, function (err, data) {
       if (err && err.name === 'NotFoundError') {
+        if (!parts.length) return cb(err);
         var prop = parts.pop();
         props.push(prop);
         propGet(db, parts, props, cb);
@@ -167,11 +171,15 @@ describe('firedup', function () {
 
   it('should be able to push arrays at rest locations', function (done) {
     var url = 'users';
-    urlPush(db, url, { name: 'Eugene', number: 42 }, function (err) {
+    var key = urlPush(db, url, { name: 'Eugene', number: 42 }, function (err) {
       if (err) return done(err);
-      urlGet(db, url, function (err, data) {
-        expect(data[0]).deep.equals({ name: 'Eugene', number: 42 });
-        done();
+      var key2 = urlPush(db, url, { name: 'Edmund', number: 43 }, function (err) {
+        if (err) return done(err);
+        urlGet(db, url, function (err, data) {
+          expect(data[key]).deep.equals({ name: 'Eugene', number: 42 });
+          expect(data[key2]).deep.equals({ name: 'Edmund', number: 43 });
+          done();
+        });
       });
     });
   });
