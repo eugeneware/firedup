@@ -88,7 +88,7 @@ describe('firedup', function () {
   function urlPush(db, url, data, cb) {
     var parts = url.split('/');
     var hr = process.hrtime();
-    var key = hr[0]*1e9 + hr[1];
+    var key = bytewise.encode(hr[0]*1e9 + hr[1]).toString('hex');
     db.put(parts.concat(key), data, cb);
     return key;
   }
