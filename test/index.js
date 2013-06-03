@@ -55,7 +55,19 @@ describe('firedup', function () {
 
   function urlPut(db, url, data, cb) {
     var parts = url.split('/');
-    db.put(parts, data, cb);
+    propPut(db, parts, data, cb);
+  }
+
+  function propPut(db, parts, data, cb) {
+    var _data = JSON.parse(JSON.stringify(data));
+    Object.keys(data).forEach(function (key) {
+      var value = data[key];
+      if (typeof value === 'object') {
+        delete _data[key];
+        propPut(db, parts.concat(key), value);
+      }
+    });
+    db.put(parts, _data, cb);
   }
 
   function urlPush(db, url, data, cb) {
@@ -141,5 +153,26 @@ describe('firedup', function () {
         });
       });
     });
+  });
+
+  it('should be able to write structured data', function (done) {
+    var url = 'users/eugene';
+    urlPut(db, url, { name: 'Eugene', number: 42, todos: ['a', 'b', 'c'] },
+      function (err) {
+        if (err) return done(err);
+        var tests = [
+          { path: 'users/eugene/todos', expected: ['a', 'b', 'c'] },
+          { path: 'users/eugene/number', expected: 42 },
+          { path: 'users/eugene/name', expected: 'Eugene' },
+        ];
+
+        var count = tests.length;
+        tests.forEach(function (test) {
+          urlGet(db, test.path, function (err, data) {
+            expect(data).to.deep.equal(test.expected);
+            --count || done();
+          });
+        });
+      });
   });
 });
