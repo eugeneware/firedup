@@ -127,20 +127,18 @@ describe('firedup', function () {
     var url = 'users/eugene'
     urlPut(db, url, { name: 'Eugene', number: 42 }, function (err) {
       if (err) return done(err);
-      var count = 3;
-      urlGet(db, 'users/eugene/name', function (err, data) {
-        expect(data).to.equal('Eugene');
-        --count || done();
-      });
-      urlGet(db, 'users/eugene/number', function (err, data) {
-        expect(data).to.equal(42);
-        --count || done();
-      });
-      urlGet(db, 'users/eugene/number/32', function (err, data) {
-        expect(err).to.exist;
-        expect(err.name).to.equal('NotFoundError');
-        expect(data).to.not.exist;
-        --count || done();
+      var tests = [
+        { path: 'users/eugene/name', expected: 'Eugene' },
+        { path: 'users/eugene/number', expected: 42 },
+        { path: 'users/eugene/number/32', expected: undefined }
+      ];
+
+      var count = tests.length;
+      tests.forEach(function (test) {
+        urlGet(db, test.path, function (err, data) {
+          expect(data).to.equal(test.expected);
+          --count || done();
+        });
       });
     });
   });
