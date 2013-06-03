@@ -1,0 +1,34 @@
+{
+  "name": "firedup",
+  "version": "0.0.0",
+  "description": "An implementation of firebase based on levelup",
+  "main": "index.js",
+  "scripts": {
+    "test": "node_modules/.bin/mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/nharbour/levelfire"
+  },
+  "keywords": [
+    "leveldb",
+    "levelup",
+    "firebase"
+  ],
+  "author": "Eugene Ware <eugene@noblesamurai.com>",
+  "license": "BSD",
+  "devDependencies": {
+    "chai": "~1.6.0",
+    "mocha": "~1.10.0",
+    "rimraf": "~2.1.4"
+  },
+  "dependencies": {
+    "levelplus": "0.0.3",
+    "levelup": "~0.9.0",
+    "byteup": "~0.1.0",
+    "leveldown": "~0.5.0",
+    "level-live-stream": "~1.4.3",
+    "level-sublevel": "~4.6.12",
+    "underscore": "~1.4.4"
+  }
+}
