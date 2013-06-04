@@ -222,5 +222,43 @@ describe('firedup', function () {
     });
   });
 
-  it('should be able to delete from a url')
+  it('should be able to delete from a url', function (done) {
+    var url = 'users/eugene';
+    var data = {
+      name: 'Eugene',
+      number: 42,
+      tags: ['awesome', 'tags', 'hello'],
+      key: {
+        public: 'my public key',
+        private: 'my private key',
+        mykeys: ['public', 'private']
+      }
+    };
+    db.urlPut(url, data, function (err) {
+      if (err) return done(err);
+      doDelete();
+    });
+
+    function doDelete() {
+      db.urlDel('users/eugene/key', function (err) {
+        check();
+      });
+    }
+
+    var tests = [
+      { key: 'users/eugene/key', expected: undefined },
+      { key: 'users/eugene/key/mykeys', expected: undefined },
+      { key: 'users/eugene/tags', expected: ['awesome', 'tags', 'hello'] }
+    ];
+
+    function check () {
+      var count = tests.length;
+      tests.forEach(function (test) {
+        db.urlGet(test.key, function (err, data) {
+          expect(data).to.deep.equals(test.expected);
+          --count || done();
+        });
+      });
+    }
+  })
 });
