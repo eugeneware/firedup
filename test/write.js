@@ -7,7 +7,8 @@ var expect = require('chai').expect
   , livestream = require('level-live-stream')
   , _ = require('underscore')
   , levelplus = require('levelplus')
-  , async = require('async');
+  , async = require('async')
+  , firedup = require('../lib/firedup');
 
 describe('firedup', function () {
   var dbPath = path.join(__dirname, '..', 'data', 'test');
@@ -18,6 +19,7 @@ describe('firedup', function () {
     db = levelup(dbPath, { keyEncoding: 'bytewise', valueEncoding: 'json' },
       function (err) {
         db = levelplus(db);
+        db = firedup(db);
         db = sublevel(db);
         done();
       });
@@ -26,106 +28,6 @@ describe('firedup', function () {
   afterEach(function (done) {
     db.close(done);
   });
-
-  function urlPut(db, url, data, cb) {
-    var parts = url.split('/');
-    propPut(db, parts, data, cb);
-  }
-
-  function deleteChildren(db, parts, cb) {
-    var ops = [];
-    db.createReadStream({
-        start: parts.concat(null),
-        end: parts.concat(undefined)
-      })
-      .on('data', function (data) {
-        ops.push({ type: 'del', key: data.key });
-      })
-      .on('end', function () {
-        cb(null, ops);
-      });
-  }
-
-  function saveObj(db, parts, data, cb) {
-    var ops = [];
-    if (typeof data === 'object') {
-      // nuke children here
-      deleteChildren(db, parts, function (err, _ops) {
-        ops = ops.concat(_ops);
-        saveChildren();
-      });
-
-      function saveChildren() {
-        var keys = Object.keys(data);
-        var count = keys.length;
-        keys.forEach(function (key) {
-          var value = data[key];
-          if (typeof value === 'object') {
-            saveObj(db, parts.concat(key), value, function (err, _ops) {
-              ops = ops.concat(_ops);
-              --count || cb(null, ops);
-            });
-          } else {
-            ops.push({ type: 'put', key: parts.concat(key), value: data[key] });
-            --count || cb(null, ops);
-          }
-        });
-      }
-    } else {
-      ops.push({ type: 'put', key: parts, value: data });
-      cb(null, ops);
-    }
-  }
-
-  function propPut(db, parts, data, cb) {
-    saveObj(db, parts, data, function (err, ops) {
-      db.batch(ops, cb);
-    });
-  }
-
-  function urlGet(db, url, cb) {
-    var parts = url.split('/');
-    propGet(db, parts, cb);
-  }
-
-  function propGet(db, parts, cb) {
-    var work = 0;
-    var obj = {};
-    db.get(parts, function (err, data) {
-      if (!err) {
-        cb(null, data);
-      } else if (err && err.name === 'NotFoundError') {
-        db.createReadStream({
-            start: parts.concat(null),
-            end: parts.concat(undefined)
-          })
-          .on('data', function (data) {
-            work++;
-            var _keys = data.key.slice(parts.length)
-            var ptr = obj;
-            _keys.forEach(function (_key, i) {
-              if (typeof ptr !== 'object') {
-                return;
-              }
-
-              if (!(_key in ptr)) {
-                ptr[_key] = {};
-              }
-              if (i < _keys.length - 1) {
-                ptr = ptr[_key];
-              } else {
-                ptr[_key] = data.value;
-              }
-            });
-          })
-          .on('end', function () {
-            cb(null, obj);
-          });
-      } else {
-        cb(err);
-      }
-    });
-  }
 
   it('should be able to store object data at rest locations', function (done) {
     var url = 'users/eugene';
@@ -139,7 +41,7 @@ describe('firedup', function () {
         mykeys: ['public', 'private']
       }
     };
-    urlPut(db, url, data, function (err) {
+    db.urlPut(url, data, function (err) {
       if (err) return done(err);
       check();
     });
@@ -175,7 +77,7 @@ describe('firedup', function () {
         mykeys: ['public', 'private']
       }
     };
-    urlPut(db, url, data, function (err) {
+    db.urlPut(url, data, function (err) {
       if (err) return done(err);
       check();
     });
@@ -191,7 +93,7 @@ describe('firedup', function () {
     function check () {
       var count = tests.length;
       tests.forEach(function (test) {
-        urlGet(db, test.key, function (err, data) {
+        db.urlGet(test.key, function (err, data) {
           expect(data).to.deep.equals(test.expected);
           --count || done();
         });
@@ -211,7 +113,7 @@ describe('firedup', function () {
         mykeys: ['public', 'private']
       }
     };
-    urlPut(db, url, data, function (err) {
+    db.urlPut(url, data, function (err) {
       if (err) return done(err);
       check();
     });
@@ -229,7 +131,7 @@ describe('firedup', function () {
     function check () {
       var count = tests.length;
       tests.forEach(function (test) {
-        urlGet(db, test.key, function (err, data) {
+        db.urlGet(test.key, function (err, data) {
           expect(data).to.deep.equals(test.expected);
           --count || done();
         });
@@ -240,14 +142,14 @@ describe('firedup', function () {
   it('should be able to work with array replacmenent', function (done) {
     var url = 'test';
     var data = ['awesome', 'tags', 'hello'];
-    urlPut(db, url, data, function (err) {
+    db.urlPut(url, data, function (err) {
       if (err) return done(err);
       next();
     });
 
     function next() {
       var data = ['goodbye'];
-      urlPut(db, url, data, function (err) {
+      db.urlPut(url, data, function (err) {
         if (err) return done(err);
         check();
       });
@@ -260,7 +162,7 @@ describe('firedup', function () {
     function check () {
       var count = tests.length;
       tests.forEach(function (test) {
-        urlGet(db, test.key, function (err, data) {
+        db.urlGet(test.key, function (err, data) {
           expect(data).to.deep.equals(test.expected);
           --count || done();
         });
@@ -273,14 +175,14 @@ describe('firedup', function () {
       name: 'Eugene',
       tags: ['tag1', 'tag2']
     };
-    urlPut(db, 'test', data, function (err) {
+    db.urlPut('test', data, function (err) {
       if (err) return done(err);
       next();
     });
 
     function next() {
       var data = 'nothing here';
-      urlPut(db, 'test/tags', data, function (err) {
+      db.urlPut('test/tags', data, function (err) {
         if (err) return done(err);
         check();
       });
@@ -294,7 +196,7 @@ describe('firedup', function () {
     function check () {
       var count = tests.length;
       tests.forEach(function (test) {
-        urlGet(db, test.key, function (err, data) {
+        db.urlGet(test.key, function (err, data) {
           expect(data).to.deep.equals(test.expected);
           --count || done();
         });
