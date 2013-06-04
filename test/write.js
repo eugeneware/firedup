@@ -204,4 +204,35 @@ describe('firedup', function () {
       });
     }
   });
+
+  it('should be able to work with arrays', function (done) {
+    var url = 'test';
+    var data = ['awesome', 'tags', 'hello'];
+    urlPut(db, url, data, function (err) {
+      if (err) return done(err);
+      next();
+    });
+
+    function next() {
+      var data = ['goodbye'];
+      urlPut(db, url, data, function (err) {
+        if (err) return done(err);
+        check();
+      });
+    }
+
+    var tests = [
+      { key: 'test', expected: data }
+    ];
+
+    function check () {
+      var count = tests.length;
+      tests.forEach(function (test) {
+        urlGet(db, test.key, function (err, data) {
+          expect(data).to.deep.equals(test.expected);
+          --count || done();
+        });
+      });
+    }
+  });
 });
