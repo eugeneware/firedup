@@ -29,7 +29,7 @@ describe('firedup', function () {
   });
 
   it('should be able to follow changes', function (done) {
-    var count = 20;
+    var count = 21;
 
     doInsert(0, 10, function (err) {
       if (err) return done(err);
@@ -41,13 +41,19 @@ describe('firedup', function () {
         .on('child_removed', function (data) {
           --count || done();
         })
+        .on('child_changed', function (data) {
+          --count || done();
+        })
         .on('value', function (data) {
           if (once) {
             expect(Object.keys(data).length).to.equal(10);
             once = false;
             doInsert(10, 10, function (err) {
               if (err) return done(err);
-              setTimeout(doDelete.bind(null, 0, 10), 100);
+              setTimeout(doDelete.bind(null, 0, 10, function (err) {
+                if (err) return done(err);
+                db.put(['users', 17], { name: 'User 17', number: 'changed' });
+              }), 100);
             });
           }
         });
