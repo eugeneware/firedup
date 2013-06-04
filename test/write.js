@@ -221,4 +221,6 @@ describe('firedup', function () {
       });
     });
   });
+
+  it('should be able to delete from a url')
 });
