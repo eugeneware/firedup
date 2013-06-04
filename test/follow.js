@@ -33,6 +33,7 @@ describe('firedup', function () {
 
     doInsert(0, 10, function (err) {
       if (err) return done(err);
+      var once = true;
       db.urlWatch('users')
         .on('child_added', function (data) {
           --count || done();
@@ -41,11 +42,14 @@ describe('firedup', function () {
           --count || done();
         })
         .on('value', function (data) {
-          expect(Object.keys(data).length).to.equal(10);
-          doInsert(0, 10, function (err) {
-            if (err) return done(err);
-            doDelete(0, 10);
-          });
+          if (once) {
+            expect(Object.keys(data).length).to.equal(10);
+            once = false;
+            doInsert(10, 10, function (err) {
+              if (err) return done(err);
+              setTimeout(doDelete.bind(null, 0, 10), 100);
+            });
+          }
         });
     });
 
