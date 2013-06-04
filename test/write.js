@@ -279,7 +279,7 @@ describe('firedup', function () {
     });
 
     function next() {
-      var data = 'nothing here';
+      var data = { nothing: 'here' };
       urlPut(db, 'test/tags', data, function (err) {
         if (err) return done(err);
         check();
@@ -288,7 +288,7 @@ describe('firedup', function () {
 
     var tests = [
       { key: 'test/tags', expected: 'nothing here' },
-      { key: 'test', expected: { name: 'Eugene', tags: 'nothing here' } }
+      { key: 'test', expected: { name: 'Eugene', tags: { nothing: 'here' } }
     ];
 
     function check () {
