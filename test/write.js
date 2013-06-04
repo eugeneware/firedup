@@ -32,6 +32,23 @@ describe('firedup', function () {
     propPut(db, parts, data, cb);
   }
 
+  function saveObj(parts, data) {
+    var ops = [];
+    if (typeof data === 'object') {
+      Object.keys(data).forEach(function (key) {
+        var value = data[key];
+        if (typeof value === 'object') {
+          ops = ops.concat(saveObj(parts.concat(key), value));
+        } else {
+          ops.push({ type: 'put', key: parts.concat(key), value: data[key] });
+        }
+      });
+    } else {
+      ops = { type: 'put', key: parts, value: data };
+    }
+    return ops;
+  }
+
   /**
    * /users/eugene/name : 'Eugene'
    * /users/eugene/name : { first: 'Eugene', last: 'Ware' }
@@ -41,13 +58,7 @@ describe('firedup', function () {
    */
   function propPut(db, parts, data, cb) {
     var ops;
-    if (typeof data === 'object') {
-      ops = Object.keys(data).map(function (key) {
-        return { type: 'put', key: parts.concat(key), value: data[key] };
-      });
-    } else {
-      ops = { type: 'put', key: parts, value: data };
-    }
+    ops = saveObj(parts, data);
     db.batch(ops, cb);
   }
 
@@ -63,7 +74,7 @@ describe('firedup', function () {
         mykeys: ['public', 'private']
       }
     };
-    urlPut(db, url, { name: 'Eugene', number: 42 }, function (err) {
+    urlPut(db, url, data, function (err) {
       if (err) return done(err);
       check();
     });
@@ -71,7 +82,9 @@ describe('firedup', function () {
     var tests = [
       { key: ['users', 'eugene', 'name'], expected: 'Eugene' },
       { key: ['users', 'eugene', 'number'], expected: 42 },
-      { key: ['users', 'eugene', 'tags', '2'], expected: 'hello' }
+      { key: ['users', 'eugene', 'tags', '2'], expected: 'hello' },
+      { key: ['users', 'eugene', 'key', 'private'], expected: 'my private key' },
+      { key: ['users', 'eugene', 'key', 'mykeys', '0'], expected: 'public' }
     ];
 
     function check () {
