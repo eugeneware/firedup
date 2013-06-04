@@ -50,10 +50,10 @@ describe('firedup', function () {
             once = false;
             doInsert(10, 10, function (err) {
               if (err) return done(err);
-              setTimeout(doDelete.bind(null, 0, 10, function (err) {
+              doDelete(0, 10, function (err) {
                 if (err) return done(err);
                 db.put(['users', 17], { name: 'User 17', number: 'changed' });
-              }), 100);
+              });
             });
           }
         });
