@@ -34,15 +34,19 @@ describe('firedup', function () {
     doInsert(0, 10, function (err) {
       if (err) return done(err);
       db.urlWatch('users')
-        .on('data', function (data) {
-          console.log(data);
+        .on('child_added', function (data) {
           --count || done();
+        })
+        .on('child_removed', function (data) {
+          --count || done();
+        })
+        .on('value', function (data) {
+          expect(Object.keys(data).length).to.equal(10);
+          doInsert(0, 10, function (err) {
+            if (err) return done(err);
+            doDelete(0, 10);
+          });
         });
-
-      doInsert(0, 10, function (err) {
-        if (err) return done(err);
-        doDelete(0, 10);
-      });
     });
 
     function doDelete(offset, n, cb) {
