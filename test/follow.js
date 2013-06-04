@@ -35,6 +35,7 @@ describe('firedup', function () {
       if (err) return done(err);
       db.urlWatch('users')
         .on('data', function (data) {
+          console.log(data);
           --count || done();
         });
 
