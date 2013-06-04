@@ -203,4 +203,22 @@ describe('firedup', function () {
       });
     }
   });
+
+  it('should be able to push to an url array', function (done) {
+    var work = _.range(0, 10).map(function (i) {
+      return db.urlPush.bind(db, 'test', { name: 'Name ' + i, num: i });
+    });
+
+    async.parallel(work, function (err) {
+      db.urlGet('test', function (err, results) {
+        Object.keys(results).forEach(function (key) {
+          var value = results[key];
+          expect(value.name).to.match(/^Name \d+$/);
+          expect(value.num).to.be.gte(0);
+          expect(value.num).to.be.lte(10);
+        });
+        done();
+      });
+    });
+  });
 });
