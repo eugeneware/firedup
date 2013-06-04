@@ -63,28 +63,36 @@ describe('firedup', function () {
   function propGet(db, parts, cb) {
     var work = 0;
     var obj = {};
-    db.createReadStream({
-        start: parts.concat(null),
-        end: parts.concat(undefined)
-      })
-      .on('data', function (data) {
-        work++;
-        var _keys = data.key.slice(parts.length)
-        var ptr = obj;
-        _keys.forEach(function (_key, i) {
-          if (!(_key in ptr)) {
-            ptr[_key] = {};
-          }
-          if (i < _keys.length - 1) {
-            ptr = ptr[_key];
-          } else {
-            ptr[_key] = data.value;
-          }
-        });
-      })
-      .on('end', function () {
-        cb(null, obj);
-      });
+    db.get(parts, function (err, data) {
+      if (!err) {
+        cb(null, data);
+      } else if (err && err.name === 'NotFoundError') {
+        db.createReadStream({
+            start: parts.concat(null),
+            end: parts.concat(undefined)
+          })
+          .on('data', function (data) {
+            work++;
+            var _keys = data.key.slice(parts.length)
+            var ptr = obj;
+            _keys.forEach(function (_key, i) {
+              if (!(_key in ptr)) {
+                ptr[_key] = {};
+              }
+              if (i < _keys.length - 1) {
+                ptr = ptr[_key];
+              } else {
+                ptr[_key] = data.value;
+              }
+            });
+          })
+          .on('end', function () {
+            cb(null, obj);
+          });
+      } else {
+        cb(err);
+      }
+    });
   }
 
   it('should be able to store object data at rest locations', function (done) {
@@ -159,7 +167,7 @@ describe('firedup', function () {
     }
   });
 
-  it.only('should be able to retrieve structured data at rest locations', function (done) {
+  it('should be able to retrieve structured data at rest locations', function (done) {
     var url = 'users/eugene';
     var data = {
       name: 'Eugene',
@@ -177,7 +185,13 @@ describe('firedup', function () {
     });
 
     var tests = [
-      { key: 'users/eugene', expected: data }
+      { key: 'users/eugene', expected: data },
+      { key: 'users/eugene/tags', expected: ['awesome', 'tags', 'hello'] },
+      { key: 'users/eugene/key', expected: {
+          public: 'my public key',
+          private: 'my private key',
+          mykeys: ['public', 'private'] } },
+      { key: 'users/eugene/key/mykeys', expected: ['public', 'private'] }
     ];
 
     function check () {
