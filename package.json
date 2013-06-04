@@ -31,6 +31,7 @@
     "level-sublevel": "~4.6.12",
     "underscore": "~1.4.4",
     "async": "~0.2.9",
-    "deep-equal": "0.0.0"
+    "deep-equal": "0.0.0",
+    "bytewise": "~0.4.0"
   }
 }
