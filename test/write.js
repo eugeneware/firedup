@@ -32,27 +32,55 @@ describe('firedup', function () {
     propPut(db, parts, data, cb);
   }
 
-  function saveObj(parts, data) {
+  function deleteChildren(db, parts, cb) {
+    var ops = [];
+    db.createReadStream({
+        start: parts.concat(null),
+        end: parts.concat(undefined)
+      })
+      .on('data', function (data) {
+        ops.push({ type: 'del', key: data.key });
+      })
+      .on('end', function () {
+        cb(null, ops);
+      });
+  }
+
+  function saveObj(db, parts, data, cb) {
     var ops = [];
     if (typeof data === 'object') {
-      Object.keys(data).forEach(function (key) {
-        var value = data[key];
-        if (typeof value === 'object') {
-          ops = ops.concat(saveObj(parts.concat(key), value));
-        } else {
-          ops.push({ type: 'put', key: parts.concat(key), value: data[key] });
-        }
+      // nuke children here
+      deleteChildren(db, parts, function (err, _ops) {
+        ops = ops.concat(_ops);
+        saveChildren();
       });
+
+      function saveChildren() {
+        var keys = Object.keys(data);
+        var count = keys.length;
+        keys.forEach(function (key) {
+          var value = data[key];
+          if (typeof value === 'object') {
+            saveObj(db, parts.concat(key), value, function (err, _ops) {
+              ops = ops.concat(_ops);
+              --count || cb(null, ops);
+            });
+          } else {
+            ops.push({ type: 'put', key: parts.concat(key), value: data[key] });
+            --count || cb(null, ops);
+          }
+        });
+      }
     } else {
-      ops = { type: 'put', key: parts, value: data };
+      ops.push({ type: 'put', key: parts, value: data });
+      cb(null, ops);
     }
-    return ops;
   }
 
   function propPut(db, parts, data, cb) {
-    var ops;
-    ops = saveObj(parts, data);
-    db.batch(ops, cb);
+    saveObj(db, parts, data, function (err, ops) {
+      db.batch(ops, cb);
+    });
   }
 
   function urlGet(db, url, cb) {
@@ -222,7 +250,7 @@ describe('firedup', function () {
     }
 
     var tests = [
-      { key: 'test', expected: data }
+      { key: 'test', expected: ['goodbye'] }
     ];
 
     function check () {
