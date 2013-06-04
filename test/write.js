@@ -104,6 +104,10 @@ describe('firedup', function () {
             var _keys = data.key.slice(parts.length)
             var ptr = obj;
             _keys.forEach(function (_key, i) {
+              if (typeof ptr !== 'object') {
+                return;
+              }
+
               if (!(_key in ptr)) {
                 ptr[_key] = {};
               }
@@ -233,7 +237,7 @@ describe('firedup', function () {
     }
   });
 
-  it('should be able to work with arrays', function (done) {
+  it('should be able to work with array replacmenent', function (done) {
     var url = 'test';
     var data = ['awesome', 'tags', 'hello'];
     urlPut(db, url, data, function (err) {
@@ -251,6 +255,40 @@ describe('firedup', function () {
 
     var tests = [
       { key: 'test', expected: ['goodbye'] }
+    ];
+
+    function check () {
+      var count = tests.length;
+      tests.forEach(function (test) {
+        urlGet(db, test.key, function (err, data) {
+          expect(data).to.deep.equals(test.expected);
+          --count || done();
+        });
+      });
+    }
+  });
+
+  it('should be able to work with object replacement', function (done) {
+    var data = {
+      name: 'Eugene',
+      tags: ['tag1', 'tag2']
+    };
+    urlPut(db, 'test', data, function (err) {
+      if (err) return done(err);
+      next();
+    });
+
+    function next() {
+      var data = 'nothing here';
+      urlPut(db, 'test/tags', data, function (err) {
+        if (err) return done(err);
+        check();
+      });
+    }
+
+    var tests = [
+      { key: 'test/tags', expected: 'nothing here' },
+      { key: 'test', expected: { name: 'Eugene', tags: 'nothing here' } }
     ];
 
     function check () {
