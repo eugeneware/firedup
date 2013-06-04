@@ -49,17 +49,42 @@ describe('firedup', function () {
     return ops;
   }
 
-  /**
-   * /users/eugene/name : 'Eugene'
-   * /users/eugene/name : { first: 'Eugene', last: 'Ware' }
-   *
-   *   /users/eugene/name/first : 'Eugene'
-   *   /users/eugene/name/last : 'Ware'
-   */
   function propPut(db, parts, data, cb) {
     var ops;
     ops = saveObj(parts, data);
     db.batch(ops, cb);
+  }
+
+  function urlGet(db, url, cb) {
+    var parts = url.split('/');
+    propGet(db, parts, cb);
+  }
+
+  function propGet(db, parts, cb) {
+    var work = 0;
+    var obj = {};
+    db.createReadStream({
+        start: parts.concat(null),
+        end: parts.concat(undefined)
+      })
+      .on('data', function (data) {
+        work++;
+        var _keys = data.key.slice(parts.length)
+        var ptr = obj;
+        _keys.forEach(function (_key, i) {
+          if (!(_key in ptr)) {
+            ptr[_key] = {};
+          }
+          if (i < _keys.length - 1) {
+            ptr = ptr[_key];
+          } else {
+            ptr[_key] = data.value;
+          }
+        });
+      })
+      .on('end', function () {
+        cb(null, obj);
+      });
   }
 
   it('should be able to store object data at rest locations', function (done) {
@@ -91,6 +116,74 @@ describe('firedup', function () {
       var count = tests.length;
       tests.forEach(function (test) {
         db.get(test.key, function (err, data) {
+          expect(data).to.deep.equals(test.expected);
+          --count || done();
+        });
+      });
+    }
+  });
+
+  it('should be able to retrieve object data at rest locations', function (done) {
+    var url = 'users/eugene';
+    var data = {
+      name: 'Eugene',
+      number: 42,
+      tags: ['awesome', 'tags', 'hello'],
+      key: {
+        public: 'my public key',
+        private: 'my private key',
+        mykeys: ['public', 'private']
+      }
+    };
+    urlPut(db, url, data, function (err) {
+      if (err) return done(err);
+      check();
+    });
+
+    var tests = [
+      { key: 'users/eugene/name', expected: 'Eugene' },
+      { key: 'users/eugene/number', expected: 42 },
+      { key: 'users/eugene/tags/2', expected: 'hello' },
+      { key: 'users/eugene/key/private', expected: 'my private key' },
+      { key: 'users/eugene/key/mykeys/0', expected: 'public' }
+    ];
+
+    function check () {
+      var count = tests.length;
+      tests.forEach(function (test) {
+        urlGet(db, test.key, function (err, data) {
+          expect(data).to.deep.equals(test.expected);
+          --count || done();
+        });
+      });
+    }
+  });
+
+  it.only('should be able to retrieve structured data at rest locations', function (done) {
+    var url = 'users/eugene';
+    var data = {
+      name: 'Eugene',
+      number: 42,
+      tags: ['awesome', 'tags', 'hello'],
+      key: {
+        public: 'my public key',
+        private: 'my private key',
+        mykeys: ['public', 'private']
+      }
+    };
+    urlPut(db, url, data, function (err) {
+      if (err) return done(err);
+      check();
+    });
+
+    var tests = [
+      { key: 'users/eugene', expected: data }
+    ];
+
+    function check () {
+      var count = tests.length;
+      tests.forEach(function (test) {
+        urlGet(db, test.key, function (err, data) {
           expect(data).to.deep.equals(test.expected);
           --count || done();
         });
