@@ -2,9 +2,10 @@
   "name": "firedup",
   "version": "0.0.0",
   "description": "A node.js implementation of firebase based on levelup",
-  "main": "index.js",
+  "main": "lib/firedup.js",
   "scripts": {
-    "test": "node_modules/.bin/mocha"
+    "test": "node_modules/.bin/mocha",
+    "start": "node app.js"
   },
   "repository": {
     "type": "git",
