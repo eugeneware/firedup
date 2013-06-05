@@ -30,12 +30,55 @@ var routes = urlrouter(function (app) {
       res.end(JSON.stringify(data));
     });
   });
+
+  app.post('/db/*', function (req, res) {
+    var match = req.url.match(/^\/db\/(.*)$/);
+    var dbUrl = match[1];
+    var obj;
+    try {
+      obj = JSON.parse(req.rawBody);
+      db.urlPut(dbUrl, obj, function (err, data) {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ msg: 'ok' }));
+      });
+    } catch (err) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ msg: err.message }));
+    }
+  });
+
+  app.delete('/db/*', function (req, res) {
+    var match = req.url.match(/^\/db\/(.*)$/);
+    var dbUrl = match[1];
+    db.urlDel(dbUrl, function (err, data) {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ msg: 'ok' }));
+    });
+  });
 });
+
+function rawBodyParser(req, res, next) {
+  if (req.method === 'GET') {
+    return next();
+  }
+
+  var rawBody = '';
+  req.setEncoding('utf8');
+
+  req.on('data', function (data) {
+    rawBody += data;
+  });
+
+  req.on('end', function () {
+    req.rawBody = rawBody;
+    next();
+  });
+}
 
 var app = connect()
   .use(connect.logger('dev'))
   .use(connect.query())
-  .use(connect.bodyParser())
+  .use(rawBodyParser)
   .use(routes)
   .use(connect.static(__dirname + '/public'));
 

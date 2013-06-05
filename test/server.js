@@ -68,4 +68,52 @@ describe('server', function() {
         done();
       });
   });
+
+  it('should be able to store data to the server', function (done) {
+    request({
+        method: 'POST',
+        url: serverEndpoint + 'users/eugene/name',
+        body: '"Eugene Ware"'
+      },
+      function (err, res, body) {
+        if (err) return done(err);
+        expect(res.statusCode).to.equal(200);
+        check();
+      });
+
+    function check() {
+      request(serverEndpoint + 'users',
+        function (err, res, body) {
+          if (err) return done(err);
+          expect(res.statusCode).to.equal(200);
+          var results = JSON.parse(body);
+          expect(results.eugene.name).to.equal('Eugene Ware');
+          done();
+        });
+    }
+  });
+
+  it('should be able to delete from the server', function (done) {
+    request({
+        method: 'DELETE',
+        url: serverEndpoint + 'users/eugene/name',
+        body: '"Eugene Ware"'
+      },
+      function (err, res, body) {
+        if (err) return done(err);
+        expect(res.statusCode).to.equal(200);
+        check();
+      });
+
+    function check() {
+      request(serverEndpoint + 'users',
+        function (err, res, body) {
+          if (err) return done(err);
+          expect(res.statusCode).to.equal(200);
+          var results = JSON.parse(body);
+          expect(results.eugene.name).to.not.exist;
+          done();
+        });
+    }
+  });
 });
