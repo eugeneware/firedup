@@ -13,28 +13,12 @@ var db;
 var dbPath = path.join(__dirname, 'data', 'test');
 
 function initDb(cb) {
-  rimraf.sync(dbPath)
   db = levelup(dbPath, { keyEncoding: 'bytewise', valueEncoding: 'json' },
     function (err) {
       db = firedup(db);
       db = sublevel(db);
-      insertData();
+      cb();
     });
-
-  function insertData() {
-    var url = 'users/eugene';
-    var data = {
-      name: 'Eugene',
-      number: 42,
-      tags: ['awesome', 'tags', 'hello'],
-      key: {
-        public: 'my public key',
-        private: 'my private key',
-        mykeys: ['public', 'private']
-      }
-    };
-    db.urlPut(url, data, cb);
-  }
 }
 
 var routes = urlrouter(function (app) {
@@ -55,10 +39,10 @@ var app = connect()
   .use(routes)
   .use(connect.static(__dirname + '/public'));
 
-initDb(startServer);
-
 function startServer() {
   var port = parseInt(process.argv[2]) || 3000;
   app.listen(port);
   console.log('Listening on port ' + port);
 }
+
+initDb(startServer);
