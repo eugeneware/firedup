@@ -78,6 +78,8 @@ describe('server', function() {
       function (err, res, body) {
         if (err) return done(err);
         expect(res.statusCode).to.equal(200);
+        var obj = JSON.parse(body);
+        expect(obj).to.equal('Eugene Ware');
         check();
       });
 
@@ -101,7 +103,8 @@ describe('server', function() {
       },
       function (err, res, body) {
         if (err) return done(err);
-        expect(res.statusCode).to.equal(200);
+        expect(res.statusCode).to.equal(204);
+        expect(body).to.equal('');
         check();
       });
 

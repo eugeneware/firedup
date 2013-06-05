@@ -39,7 +39,7 @@ var routes = urlrouter(function (app) {
       obj = JSON.parse(req.rawBody);
       db.urlPut(dbUrl, obj, function (err, data) {
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ msg: 'ok' }));
+        res.end(JSON.stringify(obj));
       });
     } catch (err) {
       res.writeHead(500, { 'Content-Type': 'application/json' });
@@ -67,8 +67,8 @@ var routes = urlrouter(function (app) {
     var match = req.url.match(/^\/db\/(.*)$/);
     var dbUrl = match[1];
     db.urlDel(dbUrl, function (err, data) {
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ msg: 'ok' }));
+      res.writeHead(204, { 'Content-Type': 'application/json' });
+      res.end();
     });
   });
 });
