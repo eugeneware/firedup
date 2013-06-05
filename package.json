@@ -1,7 +1,7 @@
 {
   "name": "firedup",
   "version": "0.0.0",
-  "description": "An implementation of firebase based on levelup",
+  "description": "A node.js implementation of firebase based on levelup",
   "main": "index.js",
   "scripts": {
     "test": "node_modules/.bin/mocha"

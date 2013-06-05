@@ -1,3 +1,3 @@
 # firedup
 
-An implementation of firebase based on leveldb/levelup.
+A node.js implementation of firebase based on leveldb/levelup.
