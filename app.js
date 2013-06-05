@@ -11,6 +11,12 @@ var http = require('http')
 
 var db;
 var dbPath = path.join(__dirname, 'data', 'test');
+var dbPrefix = '/db';
+var pathRegExp = new RegExp('^' + escapeRegExp(dbPrefix) + '/([^\?$]*)');
+
+function escapeRegExp(str) {
+  return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+}
 
 function initDb(cb) {
   db = levelup(dbPath, { keyEncoding: 'bytewise', valueEncoding: 'json' },
@@ -22,17 +28,22 @@ function initDb(cb) {
 }
 
 var routes = urlrouter(function (app) {
-  app.get('/db/*', function (req, res) {
-    var match = req.url.match(/^\/db\/(.*)$/);
+  app.get(dbPrefix + '/*', function (req, res) {
+    var match = req.url.match(pathRegExp);
     var dbUrl = match[1];
     db.urlGet(dbUrl, function (err, data) {
-      res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify(data));
+      if (req.query && req.query.callback) {
+        res.setHeader('Content-Type', 'text/javascript');
+        res.end(req.query.callback + '(' + JSON.stringify(data) + ');');
+      } else {
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify(data));
+      }
     });
   });
 
-  app.put('/db/*', function (req, res) {
-    var match = req.url.match(/^\/db\/(.*)$/);
+  app.put(dbPrefix + '/*', function (req, res) {
+    var match = req.url.match(pathRegExp);
     var dbUrl = match[1];
     var obj;
     try {
@@ -47,8 +58,8 @@ var routes = urlrouter(function (app) {
     }
   });
 
-  app.post('/db/*', function (req, res) {
-    var match = req.url.match(/^\/db\/(.*)$/);
+  app.post(dbPrefix + '/*', function (req, res) {
+    var match = req.url.match(pathRegExp);
     var dbUrl = match[1];
     var obj;
     try {
@@ -63,8 +74,8 @@ var routes = urlrouter(function (app) {
     }
   });
 
-  app.delete('/db/*', function (req, res) {
-    var match = req.url.match(/^\/db\/(.*)$/);
+  app.delete(dbPrefix + '/*', function (req, res) {
+    var match = req.url.match(pathRegExp);
     var dbUrl = match[1];
     db.urlDel(dbUrl, function (err, data) {
       res.writeHead(204, { 'Content-Type': 'application/json' });

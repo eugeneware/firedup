@@ -69,6 +69,18 @@ describe('server', function() {
       });
   });
 
+  it('should be able to do JSONP data from the server', function (done) {
+    function doCallback(results) {
+      expect(results.eugene.tags[1]).to.equal('tags');
+      done();
+    }
+    request(serverEndpoint + 'users?callback=doCallback',
+      function (err, res, body) {
+        if (err) return done(err);
+        eval(body);
+      });
+  });
+
   it('should be able to store data to the server', function (done) {
     request({
         method: 'PUT',
