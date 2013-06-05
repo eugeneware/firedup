@@ -71,7 +71,7 @@ describe('server', function() {
 
   it('should be able to store data to the server', function (done) {
     request({
-        method: 'POST',
+        method: 'PUT',
         url: serverEndpoint + 'users/eugene/name',
         body: '"Eugene Ware"'
       },

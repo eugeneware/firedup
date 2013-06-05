@@ -31,7 +31,7 @@ var routes = urlrouter(function (app) {
     });
   });
 
-  app.post('/db/*', function (req, res) {
+  app.put('/db/*', function (req, res) {
     var match = req.url.match(/^\/db\/(.*)$/);
     var dbUrl = match[1];
     var obj;
