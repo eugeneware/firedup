@@ -47,6 +47,22 @@ var routes = urlrouter(function (app) {
     }
   });
 
+  app.post('/db/*', function (req, res) {
+    var match = req.url.match(/^\/db\/(.*)$/);
+    var dbUrl = match[1];
+    var obj;
+    try {
+      obj = JSON.parse(req.rawBody);
+      var name = db.urlPush(dbUrl, obj, function (err, data) {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ name: name }));
+      });
+    } catch (err) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ msg: err.message }));
+    }
+  });
+
   app.delete('/db/*', function (req, res) {
     var match = req.url.match(/^\/db\/(.*)$/);
     var dbUrl = match[1];

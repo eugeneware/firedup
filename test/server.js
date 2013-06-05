@@ -116,4 +116,37 @@ describe('server', function() {
         });
     }
   });
+
+  it('should be able to push data to the server', function (done) {
+    var data = {
+      name: 'Susan Ware',
+      age: 23
+    };
+
+    var _name;
+    request({
+        method: 'POST',
+        url: serverEndpoint + 'users',
+        body: JSON.stringify(data)
+      },
+      function (err, res, body) {
+        if (err) return done(err);
+        expect(res.statusCode).to.equal(200);
+        _name = JSON.parse(body).name;
+        check();
+      });
+
+    function check() {
+      request(serverEndpoint + 'users',
+        function (err, res, body) {
+          if (err) return done(err);
+          expect(res.statusCode).to.equal(200);
+          var results = JSON.parse(body);
+          expect(results.eugene.name).to.equal('Eugene');
+          expect(results[_name].name).to.equal('Susan Ware');
+          expect(results[_name].age).to.equal(23);
+          done();
+        });
+    }
+  });
 });
