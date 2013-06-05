@@ -81,6 +81,17 @@ describe('server', function() {
       });
   });
 
+  it('should be able to do JSON pretty printing', function (done) {
+    request(serverEndpoint + 'users?print=pretty',
+      function (err, res, body) {
+        if (err) return done(err);
+        var results = JSON.parse(body);
+        expect(body).to.match(/      "/);
+        expect(results.eugene.tags[1]).to.equal('tags');
+        done();
+      });
+  });
+
   it('should be able to store data to the server', function (done) {
     request({
         method: 'PUT',

@@ -7,7 +7,9 @@ var http = require('http')
   , bytewise = require('byteup')()
   , sublevel = require('level-sublevel')
   , livestream = require('level-live-stream')
-  , firedup = require('./lib/firedup');
+  , firedup = require('./lib/firedup')
+  , util = require('util')
+  , jsonpretty = require('./lib/jsonpretty');
 
 var db;
 var dbPath = path.join(__dirname, 'data', 'test');
@@ -37,7 +39,11 @@ var routes = urlrouter(function (app) {
         res.end(req.query.callback + '(' + JSON.stringify(data) + ');');
       } else {
         res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify(data));
+        if (req.query && req.query.print === 'pretty') {
+          res.end(jsonpretty(data));
+        } else {
+          res.end(JSON.stringify(data));
+        }
       }
     });
   });
