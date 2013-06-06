@@ -2,7 +2,6 @@ var expect = require('chai').expect
   , rimraf = require('rimraf')
   , levelup = require('levelup')
   , firedup = require('../lib/firedup')
-  , bytewise = require('byteup')()
   , path = require('path')
   , spawn = require('child_process').spawn
   , request = require('request');
@@ -15,11 +14,8 @@ describe('server', function() {
 
   beforeEach(function (done) {
     rimraf.sync(dbPath)
-    db = levelup(dbPath, { keyEncoding: 'bytewise', valueEncoding: 'json' },
-      function (err) {
-        db = firedup(db);
-        insertData();
-      });
+    db = firedup(levelup(dbPath));
+    insertData();
 
     function insertData() {
       var url = 'users/eugene';

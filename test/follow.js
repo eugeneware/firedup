@@ -2,11 +2,7 @@ var expect = require('chai').expect
   , rimraf = require('rimraf')
   , path = require('path')
   , levelup = require('levelup')
-  , bytewise = require('byteup')()
-  , sublevel = require('level-sublevel')
   , _ = require('underscore')
-  , levelplus = require('levelplus')
-  , async = require('async')
   , firedup = require('../lib/firedup');
 
 describe('firedup', function () {
@@ -15,13 +11,8 @@ describe('firedup', function () {
 
   beforeEach(function (done) {
     rimraf.sync(dbPath)
-    db = levelup(dbPath, { keyEncoding: 'bytewise', valueEncoding: 'json' },
-      function (err) {
-        db = levelplus(db);
-        db = firedup(db);
-        db = sublevel(db);
-        done();
-      });
+    db = firedup(levelup(dbPath));
+    done();
   });
 
   afterEach(function (done) {

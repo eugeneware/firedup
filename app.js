@@ -2,7 +2,6 @@ var http = require('http')
   , connect = require('connect')
   , path = require('path')
   , levelup = require('levelup')
-  , bytewise = require('byteup')()
   , firedup = require('./lib/firedup')
   , firedupServer = require('./lib/firedupserver')
 
@@ -10,8 +9,7 @@ var db;
 var dbPath = path.join(__dirname, 'data', 'test');
 var dbPrefix = '/db';
 
-db = levelup(dbPath, { keyEncoding: 'bytewise', valueEncoding: 'json' });
-db = firedup(db);
+db = firedup(levelup(dbPath));
 
 function startServer() {
   var app = connect()
