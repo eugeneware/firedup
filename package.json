@@ -37,7 +37,7 @@
     "urlrouter": "~0.3.0",
     "connect": "~2.7.11",
     "request": "~2.21.0",
-    "engine.io": "~0.6.0",
-    "engine.io-client": "~0.6.0"
+    "socket.io": "~0.9.14",
+    "socket.io-client": "~0.9.11"
   }
 }

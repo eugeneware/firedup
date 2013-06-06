@@ -1,8 +1,9 @@
 var expect = require('chai').expect
+  , http = require('http')
   , levelup = require('levelup')
   , _ = require('underscore')
-  , eio = require('engine.io')
-  , eioClient = require('engine.io-client')
+  , io = require('socket.io')
+  , ioClient = require('socket.io-client')
   , http = require('http')
   , request = require('request')
   , connect = require('connect')
@@ -16,15 +17,16 @@ describe('websockets', function () {
     app = connect()
       .use(connect.query())
       .use(connect.static(path.join(__dirname, '..', 'public')));
-    server = app.listen(port, function (err) {
+    server = http.createServer(app).listen(port, function (err) {
       if (err) return done(err);
-      socketServer = eio.attach(server);
+      socketServer = io.listen(server, { log: false });
       done();
     });
   });
 
   afterEach(function (done) {
-    server.close(done);
+    server.close();
+    done();
   });
 
   it('should be able to fetch a page from the server', function (done) {
@@ -36,20 +38,18 @@ describe('websockets', function () {
   });
 
   it('should be able to run websocket on the server', function (done) {
-    socketServer.on('connection', function (socket) {
-      socket.send('hi');
-      socket.on('message', function (data) {
-        expect(data).to.equal('bob');
+    socketServer.sockets.on('connection', function (socket) {
+      socket.emit('greeting', { msg: 'hi' });
+      socket.on('response', function (data) {
+        expect(data.msg).to.equal('oi');
       });
     });
 
-    var socket = eioClient('ws://localhost:3000');
-    socket.on('open', function () {
-      socket.send('bob');
-      socket.on('message', function (data) {
-        expect(data).to.equal('hi');
-        done();
-      });
+    var socket = ioClient.connect('ws://localhost:3000');
+    socket.emit('response', { msg: 'oi' });
+    socket.on('greeting', function (data) {
+      expect(data.msg).to.equal('hi');
+      done();
     });
   });
 });
