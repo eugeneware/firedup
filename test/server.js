@@ -2,7 +2,6 @@ var expect = require('chai').expect
   , rimraf = require('rimraf')
   , levelup = require('levelup')
   , firedup = require('../lib/firedup')
-  , sublevel = require('level-sublevel')
   , bytewise = require('byteup')()
   , path = require('path')
   , spawn = require('child_process').spawn
@@ -19,7 +18,6 @@ describe('server', function() {
     db = levelup(dbPath, { keyEncoding: 'bytewise', valueEncoding: 'json' },
       function (err) {
         db = firedup(db);
-        db = sublevel(db);
         insertData();
       });
 
