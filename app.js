@@ -5,22 +5,15 @@ var http = require('http')
   , firedup = require('./lib/firedup')
   , firedupServer = require('./lib/firedupserver')
 
-var db;
 var dbPath = path.join(__dirname, 'data', 'test');
-var dbPrefix = '/db';
+var db = firedup(levelup(dbPath));
 
-db = firedup(levelup(dbPath));
+var app = connect()
+  .use(connect.logger('dev'))
+  .use(connect.query())
+  .use(firedupServer(db, '/db'))
+  .use(connect.static(__dirname + '/public'));
 
-function startServer() {
-  var app = connect()
-    .use(connect.logger('dev'))
-    .use(connect.query())
-    .use(firedupServer(db, dbPrefix))
-    .use(connect.static(__dirname + '/public'));
-
-  var port = parseInt(process.argv[2]) || 3000;
-  app.listen(port);
-  console.log('Listening on port ' + port);
-}
-
-startServer();
+var port = parseInt(process.argv[2]) || 3000;
+app.listen(port);
+console.log('Listening on port ' + port);
