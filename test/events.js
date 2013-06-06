@@ -20,7 +20,7 @@ describe('firedup events', function () {
   });
 
   it('should be able to follow changes', function (done) {
-    var count = 21;
+    var count = 31;
 
     doInsert(0, 10, function (err) {
       if (err) return done(err);
@@ -53,7 +53,7 @@ describe('firedup events', function () {
     function doDelete(offset, n, cb) {
       var count = n;
       _.range(offset, offset + n).forEach(function (i) {
-        db.del(['users', i], function (err) {
+        db.urlDel('users/' + i, function (err) {
           if (err) return cb(err);
           --count || cb && cb();
         });
@@ -63,7 +63,7 @@ describe('firedup events', function () {
     function doInsert(offset, n, cb) {
       var count = n;
       _.range(offset, offset + n).forEach(function (i) {
-        db.put(['users', i], { name: 'User ' + i, number: i }, function (err) {
+        db.urlPut('users/' + i, { name: 'User ' + i, number: i }, function (err) {
           if (err) return cb(err);
           --count || cb && cb();
         });
