@@ -36,6 +36,8 @@
     "bytewise": "~0.4.0",
     "urlrouter": "~0.3.0",
     "connect": "~2.7.11",
-    "request": "~2.21.0"
+    "request": "~2.21.0",
+    "engine.io": "~0.6.0",
+    "engine.io-client": "~0.6.0"
   }
 }
