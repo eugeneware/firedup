@@ -3,7 +3,8 @@ var expect = require('chai').expect
   , path = require('path')
   , levelup = require('levelup')
   , _ = require('underscore')
-  , firedup = require('../lib/firedup');
+  , firedup = require('../lib/firedup')
+  , async = require('async');
 
 describe('firedup events', function () {
   var dbPath = path.join(__dirname, '..', 'data', 'test');
@@ -68,6 +69,40 @@ describe('firedup events', function () {
           --count || cb && cb();
         });
       });
+    }
+  });
+
+  it('should be able to follow changes of values', function (done) {
+    var count = 31;
+
+    db.urlWatch('users/eugene')
+      .on('child_added', function (data) {
+        console.log('child_added', data);
+      })
+      .on('child_removed', function (data) {
+        console.log('child_removed', data);
+      })
+      .on('child_changed', function (data) {
+        console.log('child_changed', data);
+      })
+      .on('value', function (data) {
+        console.log('value', data);
+      })
+      .once('value', put);
+
+    function put() {
+      var names = ['Eugene Ware', 'Susan Ware', 'Edmund Ware'];
+      async.mapSeries(names, function (name, cb) {
+        db.urlPut('users/eugene/name', name, cb);
+      }, del);
+    }
+
+    function del() {
+      var names = ['Eugene Ware', 'Susan Ware', 'Edmund Ware'];
+      async.mapSeries(names, function (name, cb) {
+        console.log('del', name);
+        db.urlDel('users/eugene/name/' + name, cb);
+      }, function() {});
     }
   });
 });
