@@ -72,21 +72,25 @@ describe('firedup events', function () {
     }
   });
 
-  it('should be able to follow changes of values', function (done) {
-    var count = 31;
+  it('should be able to follow changes of child values', function (done) {
+    var added = 0, removed = 0, changed = 0, valued = 0;
 
     db.urlWatch('users/eugene')
       .on('child_added', function (data) {
-        console.log('child_added', data);
+        added++;
+        check();
       })
       .on('child_removed', function (data) {
-        console.log('child_removed', data);
+        removed++;
+        check();
       })
       .on('child_changed', function (data) {
-        console.log('child_changed', data);
+        changed++;
+        check();
       })
       .on('value', function (data) {
-        console.log('value', data);
+        valued++;
+        check();
       })
       .once('value', put);
 
@@ -98,11 +102,53 @@ describe('firedup events', function () {
     }
 
     function del() {
+      db.urlDel('users/eugene/name');
+    }
+
+    function check() {
+      if (added == 0 && removed == 1 && changed == 2 && valued == 4) {
+        done();
+      }
+    }
+  });
+
+  it('should be able to follow changes of values', function (done) {
+    var added = 0, removed = 0, changed = 0, valued = 0;
+
+    db.urlWatch('users/eugene/name')
+      .on('child_added', function (data) {
+        added++;
+        check();
+      })
+      .on('child_removed', function (data) {
+        removed++;
+        check();
+      })
+      .on('child_changed', function (data) {
+        changed++;
+        check();
+      })
+      .on('value', function (data) {
+        valued++;
+        check();
+      })
+      .once('value', put);
+
+    function put() {
       var names = ['Eugene Ware', 'Susan Ware', 'Edmund Ware'];
       async.mapSeries(names, function (name, cb) {
-        console.log('del', name);
-        db.urlDel('users/eugene/name/' + name, cb);
-      }, function() {});
+        db.urlPut('users/eugene/name', name, cb);
+      }, del);
+    }
+
+    function del() {
+      db.urlDel('users/eugene/name');
+    }
+
+    function check() {
+      if (added == 0 && removed == 0 && changed == 0 && valued == 5) {
+        done();
+      }
     }
   });
 });
