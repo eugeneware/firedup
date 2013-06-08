@@ -15,17 +15,19 @@ function FiredUp($q, $timeout, $parse, $http, socket, ref) {
   this.$parse = $parse;
   this.$http = $http;
   this.socket = socket;
+  this.rpcId = 0;
+  this.rpcCbs = {};
 }
 
 FiredUp.prototype.associate = function (scope, name, ret) {
   var self = this;
   var d = this.$q.defer();
-  this.socket.emit('listen', this.ref);
+  this.apiCall('listen', this.ref, function(err) { });
   var resolved = false;
   this.socket.on('value', function (data) {
     if (!resolved) {
       resolved = true;
-      d.resolve();
+      d.resolve(self);
     }
     if (angular.equals(data, self.$parse(name)(scope))) {
       return;
@@ -38,9 +40,28 @@ FiredUp.prototype.associate = function (scope, name, ret) {
     }
     self.$parse(name).assign(scope, angular.copy(data));
   });
+  this.socket.on('apiResponse', function (err, id, data) {
+    var cb = self.rpcCbs[id];
+    delete self.rpcCbs[id];
+    cb(err, data);
+  });
   scope.$watch(name, function (newVal, oldVal) {
     if (!resolved) return;
     self.$http.put(self.ref, newVal);
   }, true);
   return d.promise;
+};
+
+FiredUp.prototype.apiCall = function (methodName) {
+  var args = Array.prototype.slice.call(arguments);
+  args.shift();
+  var cb = args.pop();
+  this.rpcId++;
+  var msgId = this.rpcId;
+  this.socket.emit('apiCall', {
+    id: msgId,
+    name: methodName,
+    data: args
+  });
+  this.rpcCbs[msgId] = cb;
 };
