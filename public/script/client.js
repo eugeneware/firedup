@@ -31,15 +31,11 @@ app.controller('FiredUpChangesCtrl', function ($scope, $http, socket) {
   });
   $scope.items = [];
   $scope.addItem = function () {
-    $http.put('/db/test', $scope.items.concat($scope.newItem))
-      .then(function () {
-        $scope.newItem = '';
-      });
+    if ($scope.newItem) {
+      $http.put('/db/test', $scope.items.concat($scope.newItem))
+        .then(function () {
+          $scope.newItem = '';
+        });
+    }
   };
-  /*
-  $http.get('/db/test')
-    .then(function (results) {
-      $scope.items = results.data;
-    });
-  */
 });
