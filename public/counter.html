@@ -1,20 +1,22 @@
 <!DOCTYPE html>
 <html ng-app="CounterApp">
   <head>
-    <title>Firedup Changes</title>
-    <link rel="stylesheet" type="text/css" href="/css/app.css" />
+    <title>Counter</title>
+    <link rel="stylesheet" type="text/css" href="/css/counter.css" />
     <script type="text/javascript" src="/components/angular/angular.js"></script>
     <script type="text/javascript" src="/components/socket.io.js"></script>
   </head>
   <body>
-    <h1>Changes</h1>
+    <h1 class="blah">Counter</h1>
     <div ng-controller="CounterCtrl">
       <form ng-submit="addItem()">
         <div class="counter">
           {{counter}}
         </div>
-        <button ng-click="inc()">Up</button>
-        <button ng-click="dec()">Down</button>
+        <div class="toolbar">
+          <button ng-click="inc()">Up</button>
+          <button ng-click="dec()">Down</button>
+        </div>
       </form>
     </div>
     <script type="text/javascript" src="/script/socket.js"></script>

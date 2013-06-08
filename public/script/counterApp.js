@@ -4,7 +4,6 @@ app.controller('CounterCtrl', function ($scope, firedUp) {
   firedUp('/db/counter', $scope, 'counter', 0)
     .then(function() {
       $scope.inc = function() {
-        console.log($scope.counter);
         $scope.counter++;
       };
       $scope.dec = function() {
