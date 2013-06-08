@@ -5,8 +5,8 @@ var http = require('http')
   , bytewise = require('byteup')()
   , firedup = require('./lib/firedup')
   , firedupServer = require('./lib/firedupserver')
-  , io = require('socket.io')
-  , getUrlTail = require('./lib/urltail.js');
+  , firedupPushServer = require('./lib/fireduppushserver')
+  , io = require('socket.io');
 
 var dbPath = path.join(__dirname, 'data', 'test');
 var db = firedup(levelup(dbPath));
@@ -20,14 +20,6 @@ var app = connect()
 
 var port = parseInt(process.argv[2]) || 3000;
 var server = http.createServer(app).listen(port);
-var sockets = io.listen(server, { log: false });
-sockets.sockets.on('connection', function (socket) {
-  socket.on('listen', function (url) {
-    var dbUrl = getUrlTail(dbPrefix, url);
-    db.urlWatch(dbUrl)
-      .on('value', function (data) {
-        socket.emit('value', data);
-      });
-  });
-});
+var webSocketServer = io.listen(server, { log: false });
+firedupPushServer.connect(db, dbPrefix, webSocketServer);
 console.log('Listening on port ' + port);
