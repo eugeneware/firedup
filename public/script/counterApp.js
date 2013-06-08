@@ -4,7 +4,7 @@ app.controller('CounterCtrl', function ($scope, firedUp) {
   firedUp('/db/counter', $scope, 'counter', 0)
     .then(function(server) {
       server.apiCall('uid', function (err, data) {
-        console.log('uid returned: ' + data);
+        console.log('uid returned: ', err, data);
       });
       $scope.inc = function() {
         $scope.counter++;
