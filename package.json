@@ -1,6 +1,6 @@
 {
   "name": "firedup",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "A node.js implementation of firebase based on levelup",
   "main": "lib/firedup.js",
   "scripts": {
