@@ -23,22 +23,24 @@ FiredUp.prototype.associate = function (scope, name, ret) {
   this.socket.emit('listen', this.ref);
   var resolved = false;
   this.socket.on('value', function (data) {
-    if (!resolved) d.resolve();
+    if (!resolved) {
+      resolved = true;
+      d.resolve();
+    }
     if (angular.equals(data, self.$parse(name)(scope))) {
       return;
     }
-    if (typeof data === 'object' &&
-        typeof ret === 'object' && ret instanceof Array) {
-      if (data === null) {
-        data = [];
-      } else {
-        data.length = Object.keys(data).length;
-        data = Array.prototype.slice.call(data);
-      }
+    if (data === null) {
+      data = ret;
+    } else if (typeof data === 'object' && typeof ret === 'object' &&
+        typeof ret instanceof Array ) {
+      data.length = Object.keys(data).length;
+      data = Array.prototype.slice.call(data);
     }
     self.$parse(name).assign(scope, angular.copy(data));
   });
   scope.$watch(name, function (newVal, oldVal) {
+    if (!resolved) return;
     self.$http.put(self.ref, newVal);
   }, true);
   return d.promise;
