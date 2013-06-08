@@ -9,9 +9,12 @@
   <body>
     <h1>Changes</h1>
     <div ng-controller="FiredUpChangesCtrl">
-      <ul>
-        <li ng-repeat="item in items">{{item}}</li>
-      </ul>
+      <form ng-submit="addItem()">
+        <ul>
+          <li ng-repeat="item in items">{{item}}</li>
+        </ul>
+        <input ng-model="newItem" placeholder="Item name" />
+      </form>
     </div>
     <script type="text/javascript" src="/script/client.js"></script>
   </body>

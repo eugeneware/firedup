@@ -25,9 +25,17 @@ app.factory('socket', function ($rootScope) {
 app.controller('FiredUpChangesCtrl', function ($scope, $http, socket) {
   socket.emit('listen', 'test');
   socket.on('value', function (data) {
-    $scope.items = data;
+    console.log(data);
+    data.length = Object.keys(data).length;
+    $scope.items = Array.prototype.slice.call(data);
   });
   $scope.items = [];
+  $scope.addItem = function () {
+    $http.put('/db/test', $scope.items.concat($scope.newItem))
+      .then(function () {
+        $scope.newItem = '';
+      });
+  };
   /*
   $http.get('/db/test')
     .then(function (results) {
