@@ -1,41 +1,14 @@
-var app = angular.module('FiredUpChangesApp', []);
-app.factory('socket', function ($rootScope) {
-  var socket = io.connect();
-  return {
-    on: function (eventName, callback) {
-      socket.on(eventName, function () {
-        var args = arguments;
-        $rootScope.$apply(function () {
-          callback.apply(socket, args);
-        });
-      });
-    },
-    emit: function (eventName, data, callback) {
-      socket.emit(eventName, data, function () {
-        var args = arguments;
-        $rootScope.$apply(function () {
-          if (callback) {
-            callback.apply(socket, args);
-          }
-        });
-      })
-    }
-  };
-});
-app.controller('FiredUpChangesCtrl', function ($scope, $http, socket) {
-  socket.emit('listen', 'test');
-  socket.on('value', function (data) {
-    console.log(data);
-    data.length = Object.keys(data).length;
-    $scope.items = Array.prototype.slice.call(data);
-  });
+var app = angular.module('FiredUpChangesApp', ['firedup', 'socket.io']);
+app.controller('FiredUpChangesCtrl', function ($scope, $http, socket, firedUp) {
   $scope.items = [];
-  $scope.addItem = function () {
-    if ($scope.newItem) {
-      $http.put('/db/test', $scope.items.concat($scope.newItem))
-        .then(function () {
-          $scope.newItem = '';
-        });
-    }
-  };
+
+  var promise = firedUp('/db/test', $scope, 'items', []);
+  promise.then(function () {
+    $scope.addItem = function () {
+      if ($scope.newItem) {
+        $scope.items.push($scope.newItem);
+        $scope.newItem = '';
+      }
+    };
+  });
 });
