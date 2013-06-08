@@ -32,8 +32,7 @@ FiredUp.prototype.associate = function (scope, name, ret) {
     }
     if (data === null) {
       data = ret;
-    } else if (typeof data === 'object' && typeof ret === 'object' &&
-        typeof ret instanceof Array ) {
+    } else if (typeof data === 'object' && ret instanceof Array ) {
       data.length = Object.keys(data).length;
       data = Array.prototype.slice.call(data);
     }
