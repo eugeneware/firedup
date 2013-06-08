@@ -20,16 +20,21 @@ function FiredUp($q, $timeout, $parse, $http, socket, ref) {
 FiredUp.prototype.associate = function (scope, name, ret) {
   var self = this;
   var d = this.$q.defer();
-  this.socket.emit('listen', 'test');
+  this.socket.emit('listen', this.ref);
   var resolved = false;
   this.socket.on('value', function (data) {
     if (!resolved) d.resolve();
     if (angular.equals(data, self.$parse(name)(scope))) {
       return;
     }
-    if (typeof ret === 'object' && ret instanceof Array) {
-      data.length = Object.keys(data).length;
-      data = Array.prototype.slice.call(data);
+    if (typeof data === 'object' &&
+        typeof ret === 'object' && ret instanceof Array) {
+      if (data === null) {
+        data = [];
+      } else {
+        data.length = Object.keys(data).length;
+        data = Array.prototype.slice.call(data);
+      }
     }
     self.$parse(name).assign(scope, angular.copy(data));
   });
