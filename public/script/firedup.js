@@ -44,7 +44,9 @@ FiredUp.prototype.associate = function (scope, name, ret) {
   });
   scope.$watch(name, function (newVal, oldVal) {
     if (!resolved) return;
-    self.$http.put(self.ref, newVal);
+    self.socket.remote.put(self.ref, newVal, function (err) {
+      if (err) console.log(err);
+    });
   }, true);
   return d.promise;
 };
