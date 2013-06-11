@@ -1,6 +1,6 @@
 {
   "name": "firedup",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "A node.js implementation of firebase based on levelup",
   "main": "lib/firedup.js",
   "scripts": {
@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/nharbour/firedup"
+    "url": "https://github.com/eugeneware/firedup"
   },
   "keywords": [
     "leveldb",
